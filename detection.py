@@ -4,6 +4,11 @@ import cv2
 import numpy as np
 from logger import logger
 import random
+from config import DEV_MODE, MODEL_PATH
+from ultralytics import YOLOWorld
+
+if not DEV_MODE:
+    model = YOLOWorld(MODEL_PATH)
 
 
 async def detection_module(image_queue: asyncio.Queue, detection_queue: asyncio.Queue):
@@ -29,9 +34,11 @@ async def run_detection_algorithm(image):
     """
     await asyncio.sleep(0.5)  # Simulate processing time
 
-    # Simulate running YOLO or another detection model for 'Box' and 'Crab' classes
-    detections = simulate_detections(image)  # Replace with actual model inference
-
+    if not DEV_MODE:
+        detections = model.predict(image)
+    else:    
+        detections = simulate_detections(image)  # Replace with actual model inference
+        
     boxes = []
     crabs = []
 
