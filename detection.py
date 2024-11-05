@@ -3,6 +3,7 @@ import time
 import cv2
 import numpy as np
 from logger import logger
+import random
 
 
 async def detection_module(image_queue: asyncio.Queue, detection_queue: asyncio.Queue):
@@ -37,7 +38,9 @@ async def run_detection_algorithm(image):
     for detection in detections:
         if detection["class"] == "Box":
             # Try to read QR code within the box bounds for box ID
-            box_id = detect_qr_code_in_box(image, detection["bbox"])
+            # box_id = detect_qr_code_in_box(image, detection["bbox"])
+            # mock
+            box_id = random.randint(1, 10)
             detection["box_id"] = box_id  # Add box ID to detection if QR code was found
             boxes.append(detection)
         elif detection["class"] == "Crab":
