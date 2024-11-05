@@ -32,12 +32,12 @@ async def run_detection_algorithm(image):
     """
     Run detection algorithm, separate boxes and crabs, and try to read QR codes for box IDs.
     """
-    await asyncio.sleep(0.5)  # Simulate processing time
 
     if not DEV_MODE:
         detections = model.predict(image)
     else:    
         detections = simulate_detections(image)  # Replace with actual model inference
+        await asyncio.sleep(0.5)  # Simulate processing time
         
     boxes = []
     crabs = []
