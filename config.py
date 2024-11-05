@@ -8,3 +8,9 @@ SHIFT_INTERVAL = int(os.getenv("TIME_INTERVAL", 5))  # Default to 5 seconds if n
 MODEL_PATH = os.getenv("MODEL_PATH", "best.pt")
 CREDENTIAL = os.getenv("CREDENTIAL", "my_credential")
 BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000/api")
+# Y is referred to as the long axis, X is the short axis
+X_AXIS_PIN = int(os.getenv("X_AXIS_PIN", 17))
+Y_AXIS_PIN = int(os.getenv("Y_AXIS_PIN", 18))
+X_STEP = int(os.getenv("X_STEP", 4))
+Y_STEP = int(os.getenv("Y_STEP", 10))
+DEV_MODE = bool(os.getenv("DEV_MODE", False))
