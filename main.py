@@ -1,7 +1,7 @@
 import asyncio
 from capture import capture_images
 from detection import detection_module
-from processing import post_process_module, force_shift_camera
+from processing import post_process_module
 
 
 async def main():
@@ -13,9 +13,6 @@ async def main():
         asyncio.create_task(capture_images(image_queue)),
         asyncio.create_task(detection_module(image_queue, detection_queue)),
         asyncio.create_task(post_process_module(detection_queue)),
-        asyncio.create_task(
-            force_shift_camera()
-        ),  # Force shift camera every TIME_INTERVAL
     ]
 
     # Run the tasks indefinitely

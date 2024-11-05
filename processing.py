@@ -1,8 +1,10 @@
 import asyncio
 from logger import logger
-from hardware import shift_camera
-from config import SHIFT_INTERVAL
+from hardware import shift_camera, shift_raft
+from config import SHIFT_INTERVAL, X_STEP, Y_STEP, DEV_MODE
 
+current_x = 0
+current_y = 0
 
 async def post_process_module(detection_queue: asyncio.Queue):
     """
@@ -93,6 +95,25 @@ async def force_shift_camera():
     """
     Coroutine to force shift the camera every TIME_INTERVAL seconds.
     """
+    global current_x, current_y
+    
     while True:
         await asyncio.sleep(SHIFT_INTERVAL)
-        shift_camera()
+        # move x when y is done and vice versa 
+        if current_y < Y_STEP:
+            if not DEV_MODE:
+                shift_raft()
+            current_y += 1
+            logger.info("Raft has been shifted.")
+        
+        if current_y == Y_STEP:
+            if current_x < X_STEP:
+                if not DEV_MODE:
+                    shift_camera()
+                current_x += 1
+                logger.info("Camera has been shifted.")
+            else:
+                current_x = 0
+                current_y = 0
+                logger.info("Camera and raft have been shifted.")
+        
