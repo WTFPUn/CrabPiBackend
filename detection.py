@@ -1,5 +1,4 @@
 import asyncio
-import random
 import time
 import cv2
 import numpy as np
@@ -25,60 +24,70 @@ async def detection_module(image_queue: asyncio.Queue, detection_queue: asyncio.
 
 async def run_detection_algorithm(image):
     """
-    Run detection algorithm including QR code detection.
+    Run detection algorithm, separate boxes and crabs, and try to read QR codes for box IDs.
     """
     await asyncio.sleep(0.5)  # Simulate processing time
 
-    detections = []
+    # Simulate running YOLO or another detection model for 'Box' and 'Crab' classes
+    detections = simulate_detections(image)  # Replace with actual model inference
 
-    # Simulate QR code detection to get block ID
-    # block_id = detect_qr_code(image)
-    block_id = 1  # Placeholder for block ID
+    boxes = []
+    crabs = []
 
-    # Simulate 'Crab' and 'Box' detections
-    box_detection = {
-        "class": "Box",
-        "block_id": block_id,
-        "bbox": [0, 0, image.shape[1], image.shape[0]],  # x, y, w, h
-    }
-    detections.append(box_detection)
-
-    # Randomly decide how many crabs are in this box (0, 1, or 2)
-    num_crabs = random.choice([0, 1, 2])
-    for _ in range(num_crabs):
-        crab_detection = {
-            "class": "Crab",
-            "bbox": [
-                random.randint(100, 500),  # x
-                random.randint(100, 380),  # y
-                random.randint(30, 80),  # w
-                random.randint(30, 80),  # h
-            ],
-        }
-        detections.append(crab_detection)
+    for detection in detections:
+        if detection["class"] == "Box":
+            # Try to read QR code within the box bounds for box ID
+            box_id = detect_qr_code_in_box(image, detection["bbox"])
+            detection["box_id"] = box_id  # Add box ID to detection if QR code was found
+            boxes.append(detection)
+        elif detection["class"] == "Crab":
+            crabs.append(detection)
 
     detection_result = {
-        "detections": detections,
+        "boxes": boxes,
+        "crabs": crabs,
         "timestamp": time.time(),
     }
-    logger.info(f"Detection algorithm completed. Detections: {detections}")
+    logger.info(
+        f"Detection algorithm completed. Boxes: {len(boxes)}, Crabs: {len(crabs)}"
+    )
     return detection_result
 
 
-def detect_qr_code(image):
+def simulate_detections(image):
     """
-    Detects QR code in the image and extracts the block ID.
+    Simulate detections for boxes and crabs.
     """
+    return [
+        {"class": "Box", "bbox": [100, 100, 200, 200]},  # Simulated box coordinates
+        {
+            "class": "Crab",
+            "bbox": [120, 130, 30, 40],
+        },  # Simulated crab within box bounds
+        {
+            "class": "Crab",
+            "bbox": [150, 160, 35, 45],
+        },  # Simulated crab within box bounds
+        # Add more simulated detections as needed
+    ]
+
+
+def detect_qr_code_in_box(image, bbox):
+    """
+    Detect and decode a QR code within the bounding box area of the image.
+    """
+    x, y, w, h = bbox
+    box_region = image[y : y + h, x : x + w]  # Crop the box region
+
     qr_detector = cv2.QRCodeDetector()
-    data, bbox, _ = qr_detector.detectAndDecode(image)
+    data, _, _ = qr_detector.detectAndDecode(box_region)
     if data:
-        logger.info(f"Detected QR code with data: {data}")
         try:
-            block_id = int(data)
-            return block_id
+            box_id = int(data)
+            logger.info(f"QR code detected in box with ID: {box_id}")
+            return box_id
         except ValueError:
-            logger.error("QR code data is not a valid integer block ID.")
-            return None
+            logger.warning("QR code data is not a valid integer.")
     else:
-        logger.warning("No QR code detected.")
-        return None
+        logger.info("No QR code detected in box.")
+    return None

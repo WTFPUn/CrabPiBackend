@@ -1,7 +1,4 @@
 import asyncio
-import time
-from config import TIME_INTERVAL
-from hardware import shift_camera
 from logger import logger
 
 
@@ -28,24 +25,35 @@ async def post_process_data(detection_result):
     """
     await asyncio.sleep(0.2)  # Simulate processing time
 
-    # Separate detections into 'Crab' and 'Box'
-    crabs = [det for det in detection_result["detections"] if det["class"] == "Crab"]
-    boxes = [det for det in detection_result["detections"] if det["class"] == "Box"]
+    boxes = detection_result["boxes"]
+    crabs = detection_result["crabs"]
 
     molting_status = {}
+
     for box in boxes:
-        block_id = box.get("block_id")
-        if block_id is None:
-            logger.warning("Block ID not found. Skipping this box.")
+        box_id = box.get("box_id")
+        if box_id is None:
+            logger.info("Box without a verified ID. Skipping molting check.")
             continue
 
         box_bbox = box["bbox"]
+
+        # Find crabs within the bounds of this box
         crabs_in_box = [
             crab for crab in crabs if is_crab_in_box(crab["bbox"], box_bbox)
         ]
 
-        status = "Molting" if len(crabs_in_box) == 2 else "Not Molting"
-        molting_status[block_id] = {"status": status, "crab_count": len(crabs_in_box)}
+        # Determine molting status
+        if len(crabs_in_box) == 2:
+            status = "Molting"
+        else:
+            status = "Not Molting"
+
+        molting_status[box_id] = {
+            "status": status,
+            "crab_count": len(crabs_in_box),
+            "crabs": crabs_in_box,
+        }
 
     processed_data = {
         "molting_status": molting_status,
@@ -56,6 +64,9 @@ async def post_process_data(detection_result):
 
 
 def is_crab_in_box(crab_bbox, box_bbox):
+    """
+    Determines if a crab is inside a box based on bounding boxes.
+    """
     crab_x, crab_y, crab_w, crab_h = crab_bbox
     box_x, box_y, box_w, box_h = box_bbox
 
@@ -74,12 +85,3 @@ async def send_data_via_api(processed_data):
     """
     await asyncio.sleep(0.1)
     logger.info(f"Data sent via API: {processed_data}")
-
-
-async def force_shift_camera():
-    """
-    Coroutine to force shift the camera every TIME_INTERVAL seconds.
-    """
-    while True:
-        await asyncio.sleep(TIME_INTERVAL)
-        shift_camera()
