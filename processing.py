@@ -1,5 +1,7 @@
 import asyncio
 from logger import logger
+from hardware import shift_camera
+from config import SHIFT_INTERVAL
 
 
 async def post_process_module(detection_queue: asyncio.Queue):
@@ -85,3 +87,12 @@ async def send_data_via_api(processed_data):
     """
     await asyncio.sleep(0.1)
     logger.info(f"Data sent via API: {processed_data}")
+
+
+async def force_shift_camera():
+    """
+    Coroutine to force shift the camera every TIME_INTERVAL seconds.
+    """
+    while True:
+        await asyncio.sleep(SHIFT_INTERVAL)
+        shift_camera()
