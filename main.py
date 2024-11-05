@@ -1,7 +1,7 @@
 import asyncio
 from capture import capture_images
 from detection import detection_module
-from processing import post_process_module
+from processing import post_process_module, force_shift_camera
 
 
 async def main():
