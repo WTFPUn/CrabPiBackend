@@ -4,6 +4,7 @@ from logger import logger
 from config import DEV_MODE, SHIFT_INTERVAL, CAMERA_URL
 import time
 import cv2
+from processing import force_shift_camera
 
 if not DEV_MODE:
     camera = cv2.VideoCapture(CAMERA_URL)
@@ -30,3 +31,5 @@ async def capture_images(image_queue: asyncio.Queue):
         end = time.time()
 
         await asyncio.sleep(SHIFT_INTERVAL - (end - start_time) if SHIFT_INTERVAL - (end - start_time) > 0 else 0)
+        if  DEV_MODE:
+            await force_shift_camera()

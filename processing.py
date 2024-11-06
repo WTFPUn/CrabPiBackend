@@ -96,24 +96,21 @@ async def force_shift_camera():
     Coroutine to force shift the camera every TIME_INTERVAL seconds.
     """
     global current_x, current_y
-    
-    while True:
-        await asyncio.sleep(SHIFT_INTERVAL)
-        # move x when y is done and vice versa 
-        if current_y < Y_STEP:
+    # move x when y is done and vice versa 
+    if current_y < Y_STEP:
+        if not DEV_MODE:
+            shift_raft()
+        current_y += 1
+        logger.info("Raft has been shifted.")
+
+    if current_y == Y_STEP:
+        if current_x < X_STEP:
             if not DEV_MODE:
-                shift_raft()
-            current_y += 1
-            logger.info("Raft has been shifted.")
-        
-        if current_y == Y_STEP:
-            if current_x < X_STEP:
-                if not DEV_MODE:
-                    shift_camera()
-                current_x += 1
-                logger.info("Camera has been shifted.")
-            else:
-                current_x = 0
-                current_y = 0
-                logger.info("Camera and raft have been shifted.")
+                shift_camera()
+            current_x += 1
+            logger.info("Camera has been shifted.")
+        else:
+            current_x = 0
+            current_y = 0
+            logger.info("Camera and raft have been shifted.")
         

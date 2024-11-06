@@ -1,26 +1,28 @@
 import gpiod
+from gpiod.line import Direction, Value
 from config import X_AXIS_PIN, Y_AXIS_PIN
-
-chip = gpiod.Chip("gpiochip4")
-# set the line to output
-# line = chip.get_line(PWM_PIN)
-# line.request(consumer="pwm", type=gpiod.LINE_REQ_DIR_OUT)
-
-x_line = chip.get_line(X_AXIS_PIN)
-y_line = chip.get_line(Y_AXIS_PIN)
 
 
 def shift_camera():
     """
     Function to shift x axis(camera)
     """
-    x_line.set_value(1)
-    x_line.set_value(0)
+    with gpiod.request_lines("/dev/gpiochip4", consumer="movecam", config={
+        X_AXIS_PIN: gpiod.LineSettings(direction=Direction.OUTPUT, output_value=Value.ACTIVE)
+    }) as request:
+
+        request.set_value(X_AXIS_PIN, 1)
+        #request.set_value(X_AXIS_PIN, 0)
 
 
 def shift_raft():
     """
     Function to shift y axis(raft)
     """
-    y_line.set_value(1)
-    y_line.set_value(0)
+    with gpiod.request_lines("/dev/gpiochip4", consumer="movecam", config={
+        Y_AXIS_PIN: gpiod.LineSettings(direction=Direction.OUTPUT, output_value=Value.ACTIVE)
+    }) as request:
+
+        request.set_value(Y_AXIS_PIN, 1)
+        #request.set_value(Y_AXIS_PIN, 0)
+
