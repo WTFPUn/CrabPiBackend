@@ -4,10 +4,10 @@ import cv2
 import numpy as np
 from logger import logger
 import random
-from config import DEV_MODE, MODEL_PATH
+from config import DETECTION_DEV_MODE, MODEL_PATH
 from ultralytics import YOLOWorld
 
-if not DEV_MODE:
+if not DETECTION_DEV_MODE:
     model = YOLOWorld(MODEL_PATH)
 
 
@@ -33,7 +33,7 @@ async def run_detection_algorithm(image):
     Run detection algorithm, separate boxes and crabs, and try to read QR codes for box IDs.
     """
 
-    if not DEV_MODE:
+    if not DETECTION_DEV_MODE:
         detections = model.predict(image)
     else:
         detections = simulate_detections(image)  # Replace with actual model inference

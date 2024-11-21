@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 import os
+from logger import logger
 
 load_dotenv()
 
@@ -14,7 +15,28 @@ X_AXIS_PIN = int(os.getenv("X_AXIS_PIN", 17))
 Y_AXIS_PIN = int(os.getenv("Y_AXIS_PIN", 18))
 X_STEP = int(os.getenv("X_STEP", 4))
 Y_STEP = int(os.getenv("Y_STEP", 10))
-DEV_MODE = bool(os.getenv("DEV_MODE", False))
+HARDWARE_DEV_MODE=True if os.getenv("HARDWARE_DEV_MODE", "True").lower() == "true" else False
+DETECTION_DEV_MODE=True if os.getenv("DETECTION_DEV_MODE", "True").lower() == "true" else False
+API_DEV_MODE=True if os.getenv("API_DEV_MODE", "True").lower() == "true" else False
+CAPTURE_DEV_MODE=True if os.getenv("CAPTURE_DEV_MODE", "True").lower() == "true" else False
 AUTO_SHIFT_Y = int(os.getenv("AUTO_SHIFT_Y", 5))
 ROW_BOX = int(os.getenv("ROW_BOX", 2))
 COL_BOX = int(os.getenv("COL_BOX", 2))
+
+logger.info("Configuration loaded.")
+logger.info(f"SHIFT_INTERVAL: {SHIFT_INTERVAL}")
+logger.info(f"MODEL_PATH: {MODEL_PATH}")
+logger.info(f"CREDENTIAL: {CREDENTIAL}")
+logger.info(f"BACKEND_URL: {BACKEND_URL}")
+logger.info(f"CAMERA_URL: {CAMERA_URL}")
+logger.info(f"X_AXIS_PIN: {X_AXIS_PIN}")
+logger.info(f"Y_AXIS_PIN: {Y_AXIS_PIN}")
+logger.info(f"X_STEP: {X_STEP}")
+logger.info(f"Y_STEP: {Y_STEP}")
+logger.info(f"HARDWARE_DEV_MODE: {HARDWARE_DEV_MODE}")
+logger.info(f"DETECTION_DEV_MODE: {DETECTION_DEV_MODE}")
+logger.info(f"API_DEV_MODE: {API_DEV_MODE}")
+logger.info(f"CAPTURE_DEV_MODE: {CAPTURE_DEV_MODE}")
+logger.info(f"AUTO_SHIFT_Y: {AUTO_SHIFT_Y}")
+logger.info(f"ROW_BOX: {ROW_BOX}")
+logger.info(f"COL_BOX: {COL_BOX}")

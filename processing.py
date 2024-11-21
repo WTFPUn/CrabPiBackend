@@ -1,7 +1,7 @@
 import asyncio
 from logger import logger
 from hardware import shift_camera, shift_raft
-from config import SHIFT_INTERVAL, X_STEP, Y_STEP, DEV_MODE
+from config import SHIFT_INTERVAL, X_STEP, Y_STEP, HARDWARE_DEV_MODE
 
 current_x = 0
 current_y = 0
@@ -98,7 +98,7 @@ async def force_shift_camera():
     global current_x, current_y
     # move x when y is done and vice versa
     if current_y < Y_STEP:
-        if not DEV_MODE:
+        if not HARDWARE_DEV_MODE:
             await shift_raft()
         current_y += 1
         logger.info("Raft has been shifted.")

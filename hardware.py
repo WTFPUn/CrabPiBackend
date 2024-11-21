@@ -3,9 +3,9 @@ import time
 import asyncio
 from config import X_AXIS_PIN, Y_AXIS_PIN
 from logger import logger
-from config import DEV_MODE
+from config import HARDWARE_DEV_MODE
 
-if not DEV_MODE:
+if not HARDWARE_DEV_MODE:
     ser = serial.Serial("/dev/ttyUSB0", 9600, timeout= 1)
     time.sleep(2)
 
@@ -17,7 +17,7 @@ async def shift_camera():
     """
     Function to shift x axis(camera)
     """
-    if DEV_MODE:
+    if HARDWARE_DEV_MODE:
         logger.info("some cam push")
         await asyncio.sleep(5)
         logger.info("raft stop")
