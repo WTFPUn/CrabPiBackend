@@ -15,4 +15,6 @@ Y_AXIS_PIN = int(os.getenv("Y_AXIS_PIN", 18))
 X_STEP = int(os.getenv("X_STEP", 4))
 Y_STEP = int(os.getenv("Y_STEP", 10))
 DEV_MODE = bool(os.getenv("DEV_MODE", False))
-
+AUTO_SHIFT_Y = int(os.getenv("AUTO_SHIFT_Y", 5))
+ROW_BOX = int(os.getenv("ROW_BOX", 2))
+COL_BOX = int(os.getenv("COL_BOX", 2))

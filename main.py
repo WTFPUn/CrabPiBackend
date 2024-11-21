@@ -2,7 +2,19 @@ import asyncio
 from capture import capture_images
 from detection import detection_module
 from processing import post_process_module, force_shift_camera
+import requests
+from config import BACKEND_URL, CREDENTIAL, ROW_BOX, COL_BOX
 
+check = requests.post("{}/backapi/pi/init_pond".format(BACKEND_URL), json= {
+    "lisense": CREDENTIAL,
+    "raft_info": [
+        {"row": ROW_BOX, "column": COL_BOX}
+    ]
+})
+
+if check.status_code != 200:
+    print("Liscense not valid")
+    exit(1)
 
 async def main():
     image_queue = asyncio.Queue()
