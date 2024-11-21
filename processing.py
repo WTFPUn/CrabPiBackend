@@ -1,10 +1,16 @@
 import asyncio
 from logger import logger
 from hardware import shift_camera, shift_raft
-from config import SHIFT_INTERVAL, X_STEP, Y_STEP, HARDWARE_DEV_MODE
+from config import SHIFT_INTERVAL, X_STEP, Y_STEP, HARDWARE_DEV_MODE, CREDENTIAL, BACKEND_URL, API_DEV_MODE
+import requests
 
 current_x = 0
 current_y = 0
+
+raft_id = None
+
+with open("raft_id.txt", "r") as f:
+    raft_id = f.read()
 
 async def post_process_module(detection_queue: asyncio.Queue):
     """
@@ -18,8 +24,11 @@ async def post_process_module(detection_queue: asyncio.Queue):
         processed_data = await post_process_data(detection_result)
 
         # Simulate sending data via API
-        await send_data_via_api(processed_data)
-
+        if not API_DEV_MODE:
+            await send_data_via_api(processed_data)
+        else:
+            logger.info("API_DEV_MODE enabled. Skipping API call.")
+    
         detection_queue.task_done()
 
 
@@ -87,7 +96,32 @@ async def send_data_via_api(processed_data):
     """
     Simulate sending data via an API.
     """
-    await asyncio.sleep(0.1)
+    # format body in server side(per box)
+    # class BoxUpdateRequestBody(BaseModel):
+    # lisense: str
+    # raft_id: int
+    # box_id: int
+    # status: BoxStatus
+    # await asyncio.sleep(0.1)
+    
+    
+    for box_id, data in processed_data["molting_status"].items():
+        status = data["status"]
+        crabs = data["crabs"]
+        
+        body = {
+            "lisense": CREDENTIAL,
+            "raft_id": raft_id,
+            "box_id": box_id,
+            "status": status,
+        }
+        
+        response = requests.post(f"{BACKEND_URL}/backapi/pi/update_box", json=body)
+        if response.status_code != 200:
+            logger.error(f"Failed to send data for box {box_id}.")
+            continue
+        logger.info(f"Data sent via API for box {box_id}: {body}")
+        
     logger.info(f"Data sent via API: {processed_data}")
 
 

@@ -15,6 +15,11 @@ check = requests.post("{}/backapi/pi/init_pond".format(BACKEND_URL), json= {
 if check.status_code != 200:
     print("Liscense not valid")
     exit(1)
+    
+raft_id = check.json()["raft_id"]
+# keep raft_id in file
+with open("raft_id.txt", "w") as f:
+    f.write(raft_id)
 
 async def main():
     image_queue = asyncio.Queue()
