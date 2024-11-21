@@ -1,26 +1,31 @@
-import gpiod
+import serial
+import time
+import asyncio
 from config import X_AXIS_PIN, Y_AXIS_PIN
+from logger import logger
 
-chip = gpiod.Chip("gpiochip4")
-# set the line to output
-# line = chip.get_line(PWM_PIN)
-# line.request(consumer="pwm", type=gpiod.LINE_REQ_DIR_OUT)
+ser = serial.Serial("/dev/ttyUSB0", 9600, timeout= 1)
+time.sleep(2)
 
-x_line = chip.get_line(X_AXIS_PIN)
-y_line = chip.get_line(Y_AXIS_PIN)
+def send_data(data):
+    ser.write(data.encode())
+    logger.info("send data to move")
 
-
-def shift_camera():
+async def shift_camera():
     """
     Function to shift x axis(camera)
     """
-    x_line.set_value(1)
-    x_line.set_value(0)
+    send_data("forward,128\n")
+    await asyncio.sleep(5)
+    send_data("stop,0\n")
+    await asyncio.sleep(5)
+    logger.info("shift camera")
 
-
-def shift_raft():
+async def shift_raft():
     """
     Function to shift y axis(raft)
     """
-    y_line.set_value(1)
-    y_line.set_value(0)
+    logger.info("some raft push")
+    await asyncio.sleep(5)
+    logger.info("raft stop")
+    await asyncio.sleep(5)

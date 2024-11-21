@@ -35,10 +35,10 @@ async def run_detection_algorithm(image):
 
     if not DEV_MODE:
         detections = model.predict(image)
-    else:    
+    else:
         detections = simulate_detections(image)  # Replace with actual model inference
-        await asyncio.sleep(0.5)  # Simulate processing time
-        
+        await asyncio.sleep(10)  # Simulate processing time
+
     boxes = []
     crabs = []
 
