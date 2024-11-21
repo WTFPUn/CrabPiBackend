@@ -4,6 +4,7 @@ from detection import detection_module
 from processing import post_process_module, force_shift_camera
 import requests
 from config import BACKEND_URL, CREDENTIAL, ROW_BOX, COL_BOX
+from logger import logger
 
 check = requests.post("{}/backapi/pi/init_pond".format(BACKEND_URL), json= {
     "lisense": CREDENTIAL,
@@ -15,11 +16,16 @@ check = requests.post("{}/backapi/pi/init_pond".format(BACKEND_URL), json= {
 if check.status_code != 200:
     print("Liscense not valid")
     exit(1)
-    
-raft_id = check.json()["raft_id"]
+
+
+
+# raft_id = check.text
+# logger.info(raft_id)
+
+
 # keep raft_id in file
-with open("raft_id.txt", "w") as f:
-    f.write(raft_id)
+# with open("raft_id.txt", "w") as f:
+#     f.write(raft_id)
 
 async def main():
     image_queue = asyncio.Queue()

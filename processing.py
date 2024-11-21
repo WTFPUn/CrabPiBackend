@@ -9,8 +9,7 @@ current_y = 0
 
 raft_id = None
 
-with open("raft_id.txt", "r") as f:
-    raft_id = f.read()
+
 
 async def post_process_module(detection_queue: asyncio.Queue):
     """
@@ -103,7 +102,8 @@ async def send_data_via_api(processed_data):
     # box_id: int
     # status: BoxStatus
     # await asyncio.sleep(0.1)
-    
+    with open("raft_id.txt", "r") as f:
+        raft_id = f.read()
     
     for box_id, data in processed_data["molting_status"].items():
         status = data["status"]

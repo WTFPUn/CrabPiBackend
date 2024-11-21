@@ -34,25 +34,47 @@ async def run_detection_algorithm(image):
     """
 
     if not DETECTION_DEV_MODE:
-        detections = model.predict(image)
+        # Perform inference using the YOLO-World model
+        results = model.predict(image, conf=0.5)
     else:
-        detections = simulate_detections(image)  # Replace with actual model inference
+        results = simulate_detections(image)  # Replace with actual model inference
         await asyncio.sleep(10)  # Simulate processing time
 
     boxes = []
     crabs = []
 
-    for detection in detections:
-        if detection["class"] == "Box":
-            # Try to read QR code within the box bounds for box ID
-            box_id = detect_qr_code_in_box(image, detection["bbox"])
-            if box_id is None:
-                # skip this box if QR code was not found
-                continue
-            detection["box_id"] = box_id  # Add box ID to detection if QR code was found
-            boxes.append(detection)
-        elif detection["class"] == "Crab":
-            crabs.append(detection)
+    # Iterate over each result
+    for result in results:
+        # Access the detected boxes
+        for box in result.boxes:
+            class_id = int(box.cls)
+            confidence = float(box.conf)
+            x_min, y_min, x_max, y_max = box.xyxy[0].tolist()
+
+            # Convert the coordinates to integers
+            x_min, y_min, x_max, y_max = map(int, [x_min, y_min, x_max, y_max])
+
+            # Map class IDs to class names
+            class_name = model.names[class_id]
+
+            detection = {
+                "class": class_name,
+                "confidence": confidence,
+                "bbox": [x_min, y_min, x_max, y_max]
+            }
+
+            logger.info(f"Detection: {class_name} with confidence {confidence}")
+
+            if class_name == "Box":
+                # Try to read QR code within the box bounds for box ID
+                box_id = detect_qr_code_in_box(image, detection["bbox"])
+                if box_id is None:
+                    # Skip this box if QR code was not found
+                    continue
+                detection["box_id"] = box_id  # Add box ID to detection if QR code was found
+                boxes.append(detection)
+            elif class_name == "Crab":
+                crabs.append(detection)
 
     detection_result = {
         "boxes": boxes,
