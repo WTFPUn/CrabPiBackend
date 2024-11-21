@@ -45,9 +45,10 @@ async def run_detection_algorithm(image):
     for detection in detections:
         if detection["class"] == "Box":
             # Try to read QR code within the box bounds for box ID
-            # box_id = detect_qr_code_in_box(image, detection["bbox"])
-            # mock
-            box_id = random.randint(1, 10)
+            box_id = detect_qr_code_in_box(image, detection["bbox"])
+            if box_id is None:
+                # skip this box if QR code was not found
+                continue
             detection["box_id"] = box_id  # Add box ID to detection if QR code was found
             boxes.append(detection)
         elif detection["class"] == "Crab":
