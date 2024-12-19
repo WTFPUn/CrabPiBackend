@@ -1,14 +1,35 @@
 import asyncio
 from logger import logger
-from hardware import shift_camera, shift_raft
-from config import SHIFT_INTERVAL, X_STEP, Y_STEP, HARDWARE_DEV_MODE, CREDENTIAL, BACKEND_URL, API_DEV_MODE
+from hardware import shift_camera, shift_raft, fuckingback
+from config import SHIFT_INTERVAL, ROW_BOX, COL_BOX, HARDWARE_DEV_MODE, CREDENTIAL, BACKEND_URL, API_DEV_MODE
 import requests
+import base64
+import io
+import numpy as np
+from PIL import Image
+
 
 current_x = 0
 current_y = 0
 
 raft_id = None
 
+def numpy_to_base64(image_array, image_format="JPEG"):
+    # Convert the NumPy array (H x W x C) to a PIL Image
+    # Ensure your array is in the right format: for RGB images, typically uint8 type.
+    image_array = image_array[..., ::-1]
+    pil_image = Image.fromarray(image_array.astype('uint8'))
+
+    # Write the image to a bytes buffer in the specified format
+    buffer = io.BytesIO()
+    pil_image.save(buffer, format=image_format)
+    buffer.seek(0)
+
+    # Base64 encode the bytes
+    img_bytes = buffer.getvalue()
+    base64_str = base64.b64encode(img_bytes).decode('utf-8')
+
+    return base64_str
 
 
 async def post_process_module(detection_queue: asyncio.Queue):
@@ -16,6 +37,8 @@ async def post_process_module(detection_queue: asyncio.Queue):
     Coroutine that processes detection results and sends data via API.
     """
     while True:
+        logger.info("runn post")
+
         detection_result = await detection_queue.get()
         logger.info("Post-process module processing detection result.")
 
@@ -27,7 +50,7 @@ async def post_process_module(detection_queue: asyncio.Queue):
             await send_data_via_api(processed_data)
         else:
             logger.info("API_DEV_MODE enabled. Skipping API call.")
-    
+
         detection_queue.task_done()
 
 
@@ -57,14 +80,19 @@ async def post_process_data(detection_result):
 
         # Determine molting status
         if len(crabs_in_box) == 2:
-            status = "Molting"
+            status = "MOLT"
+        elif len(crabs_in_box) == 1:
+            status = "NOT_MOLT"
         else:
-            status = "Not Molting"
+            status = "EMPTY"
+
+
 
         molting_status[box_id] = {
             "status": status,
             "crab_count": len(crabs_in_box),
             "crabs": crabs_in_box,
+            "img": numpy_to_base64(box["img"])
         }
 
     processed_data = {
@@ -104,46 +132,49 @@ async def send_data_via_api(processed_data):
     # await asyncio.sleep(0.1)
     with open("raft_id.txt", "r") as f:
         raft_id = f.read()
-    
+
     for box_id, data in processed_data["molting_status"].items():
         status = data["status"]
         crabs = data["crabs"]
-        
+
         body = {
             "lisense": CREDENTIAL,
             "raft_id": raft_id,
-            "box_id": box_id,
+            "box_id": int(box_id),
             "status": status,
+            "image": data["img"]
         }
-        
-        response = requests.post(f"{BACKEND_URL}/backapi/pi/update_box", json=body)
+        logger.info(BACKEND_URL)
+        response = requests.post(f"https://harvesttech-scraber.com/backapi/pi/update_box", json=body)
         if response.status_code != 200:
             logger.error(f"Failed to send data for box {box_id}.")
             continue
         logger.info(f"Data sent via API for box {box_id}: {body}")
-        
+
     logger.info(f"Data sent via API: {processed_data}")
 
 
-async def force_shift_camera():
+async def force_shift_camera(t):
     """
     Coroutine to force shift the camera every TIME_INTERVAL seconds.
     """
     global current_x, current_y
     # move x when y is done and vice versa
-    if current_y < Y_STEP:
-        if not HARDWARE_DEV_MODE:
-            await shift_raft()
+    if current_y < ROW_BOX:
+        await shift_raft(t)
         current_y += 1
         logger.info("Raft has been shifted.")
 
-    if current_y == Y_STEP:
-        if current_x < X_STEP:
+    if current_y == ROW_BOX:
+        if current_x < COL_BOX:
             await shift_camera()
             current_x += 1
+            current_y = 0
             logger.info("Camera has been shifted.")
         else:
+            await fuckingback()
             current_x = 0
             current_y = 0
-            logger.info("Camera and raft have been shifted.")
+            exit(1)
+            logger.info("fucking stop")
 

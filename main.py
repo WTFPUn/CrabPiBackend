@@ -6,16 +6,17 @@ import requests
 from config import BACKEND_URL, CREDENTIAL, ROW_BOX, COL_BOX
 from logger import logger
 
-check = requests.post("{}/backapi/pi/init_pond".format(BACKEND_URL), json= {
-    "lisense": CREDENTIAL,
-    "raft_info": [
-        {"row": ROW_BOX, "column": COL_BOX}
-    ]
-})
+# check = requests.post("{}/backapi/pi/init_pond".format(BACKEND_URL), json= {
+#     "lisense": CREDENTIAL,
+#     "raft_info": [
+#         {"row": ROW_BOX, "column": COL_BOX}
+#     ]
+# })
 
-if check.status_code != 200:
-    print("Liscense not valid")
-    exit(1)
+# print(check.status_code)
+# if check.status_code != 200:
+#     print("Liscense not valid")
+#     exit(1)
 
 
 
@@ -30,6 +31,7 @@ if check.status_code != 200:
 async def main():
     image_queue = asyncio.Queue()
     detection_queue = asyncio.Queue()
+    print("set queue")
 
     # Start the coroutines, including the force shift camera coroutine
     tasks = [
@@ -38,9 +40,13 @@ async def main():
         asyncio.create_task(post_process_module(detection_queue)),
     ]
 
+    print("set tasks")
+
     # Run the tasks indefinitely
     await asyncio.gather(*tasks)
 
 
 # Run the main function
-asyncio.run(main())
+loop = asyncio.get_event_loop()
+print("Get loop")
+loop.run_until_complete(main())

@@ -1,7 +1,7 @@
 import asyncio
 import numpy as np
 from logger import logger
-from config import CAPTURE_DEV_MODE, SHIFT_INTERVAL, CAMERA_URL, HARDWARE_DEV_MODE
+from config import CAPTURE_DEV_MODE, RAFT_SHIFT_TIME, CAMERA_URL, HARDWARE_DEV_MODE
 import time
 import cv2
 from processing import force_shift_camera
@@ -11,15 +11,14 @@ import os
 choice = os.listdir("imgs")
 
 
-if not CAPTURE_DEV_MODE:
-    camera = cv2.VideoCapture(CAMERA_URL)
-
-
 async def capture_images(image_queue: asyncio.Queue):
     """
     Coroutine that captures images and puts them into the queue.
     """
     while True:
+        logger.info("runn caoture")
+        if not CAPTURE_DEV_MODE:
+            camera = cv2.VideoCapture(CAMERA_URL)
         # Simulate image capture
         start_time = time.time()
         if not CAPTURE_DEV_MODE:
@@ -33,6 +32,5 @@ async def capture_images(image_queue: asyncio.Queue):
         await image_queue.put(image)
         end = time.time()
 
-        await asyncio.sleep(SHIFT_INTERVAL - (end - start_time) if SHIFT_INTERVAL - (end - start_time) > 0 else 0)
-        if  HARDWARE_DEV_MODE:
-            await force_shift_camera()
+        if  not HARDWARE_DEV_MODE:
+            await force_shift_camera(RAFT_SHIFT_TIME - (end - start_time) if RAFT_SHIFT_TIME - (end - start_time) > 0 else 0)

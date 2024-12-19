@@ -5,10 +5,10 @@ import numpy as np
 from logger import logger
 import random
 from config import DETECTION_DEV_MODE, MODEL_PATH
-from ultralytics import YOLOWorld
+from ultralytics import YOLOWorld, YOLO
 
 if not DETECTION_DEV_MODE:
-    model = YOLOWorld(MODEL_PATH)
+    model = YOLO(MODEL_PATH)
 
 
 async def detection_module(image_queue: asyncio.Queue, detection_queue: asyncio.Queue):
@@ -17,6 +17,8 @@ async def detection_module(image_queue: asyncio.Queue, detection_queue: asyncio.
     runs detection, and puts results into detection_queue.
     """
     while True:
+        logger.info("runn det")
+
         image = await image_queue.get()
         logger.info("Detection module processing image.")
 
@@ -35,7 +37,8 @@ async def run_detection_algorithm(image):
 
     if not DETECTION_DEV_MODE:
         # Perform inference using the YOLO-World model
-        results = model.predict(image, conf=0.5)
+        results = model.predict(image, conf=0.3)
+        logger.info("is in detect")
     else:
         results = simulate_detections(image)  # Replace with actual model inference
         await asyncio.sleep(10)  # Simulate processing time
@@ -60,7 +63,8 @@ async def run_detection_algorithm(image):
             detection = {
                 "class": class_name,
                 "confidence": confidence,
-                "bbox": [x_min, y_min, x_max, y_max]
+                "bbox": [x_min, y_min, x_max, y_max],
+                "img": image[y_min:y_max, x_min:x_max]
             }
 
             logger.info(f"Detection: {class_name} with confidence {confidence}")
